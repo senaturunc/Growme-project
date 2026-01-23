@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>GrowMe | İlerleme</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #fff6ec, #f7d9f0, #e8dcff);
+            background-size: 300% 300%;
+            animation: bgAnim 12s ease infinite;
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+        }
+
+        @keyframes bgAnim {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .top-bar {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 20px 25px;
+            border-radius: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-box {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(180, 160, 255, 0.25),
+                inset 0 0 20px rgba(255, 255, 255, 0.6);
+            transition: 0.4s;
+        }
+
+        .card-box:hover {
+            transform: translateY(-5px) scale(1.01);
+        }
+
+        .progress {
+            height: 18px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #C6B9FF, #A798FF, #FFCDEB);
+        }
+
+        .big-percent {
+            font-size: 42px;
+            font-weight: bold;
+            color: #A798FF;
+            letter-spacing: 1px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .motivation-box {
+            background: linear-gradient(135deg, #FFCDEB, #C6B9FF);
+            color: white;
+            padding: 25px;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .glow {
+            animation: glowAnim 1.5s infinite alternate;
+        }
+
+        @keyframes glowAnim {
+            from {
+                text-shadow: 0 0 5px #fff;
+            }
+
+            to {
+                text-shadow: 0 0 15px #fff, 0 0 25px #FFCDEB;
+            }
+        }
+
+        .timeline {
+            position: relative;
+            margin-top: 20px;
+        }
+
+        .timeline::before {
+            content: "";
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #C6B9FF;
+            border-radius: 10px;
+        }
+
+        .timeline-item {
+            margin-left: 30px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ffffff, #f7f3ff);
+            border-left: 4px solid #C6B9FF;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .timeline-item:hover,
+        .card-box:hover {
+            transform: translateY(-6px) scale(1.02);
+        }
+
+
+        .badge-row {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .badge-box {
+            text-align: center;
+            opacity: 0.3;
+            transition: 0.4s;
+        }
+
+        .badge-box.active {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+        .badge-box span {
+            font-size: 36px;
+        }
+
+        /* CELEBRATION OVERLAY */
+        #celebrationOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            pointer-events: none;
+            opacity: 0;
+            transition: 0.4s;
+            z-index: 9999;
+        }
+
+        #celebrationOverlay.show {
+            opacity: 1;
+        }
+
+        .celebrate-text {
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            margin-top: 20px;
+            animation: pop 0.6s ease;
+        }
+
+        @keyframes pop {
+            from {
+                transform: scale(0);
+            }
+
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .firework {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, #fff, #ff69b4, #ffd700);
+            border-radius: 50%;
+            animation: explode 1s ease-out infinite;
+        }
+
+        .firework:nth-child(1) {
+            left: 30%;
+            top: 40%;
+            animation-delay: 0s;
+        }
+
+        .firework:nth-child(2) {
+            left: 60%;
+            top: 30%;
+            animation-delay: 0.2s;
+        }
+
+        .firework:nth-child(3) {
+            left: 50%;
+            top: 60%;
+            animation-delay: 0.4s;
+        }
+
+        @keyframes explode {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(6);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="container py-4">
+
+    <div class="top-bar d-flex justify-content-between align-items-center">
+        <h3>📈 İlerleme Merkezim</h3>
+        <a href="dashboard.html" class="btn btn-outline-secondary">← Dashboard</a>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- BUGÜN -->
+        <div class="col-md-6">
+            <div class="card-box text-center">
+                <h5>✨ Bugünkü Performans</h5>
+                <div class="big-percent" id="todayPercent">0%</div>
+                <div class="progress mb-2">
+                    <div class="progress-bar" id="todayBar" style="width:0%"></div>
+                </div>
+                <small id="todayText">Henüz veri yok</small>
+            </div>
+        </div>
+
+        <!-- HAFTA -->
+        <div class="col-md-6">
+            <div class="card-box text-center">
+                <h5>🌿 Haftalık Genel Durum</h5>
+                <div class="big-percent" id="weekPercent">0%</div>
+                <div class="progress mb-2">
+                    <div class="progress-bar" id="weekBar" style="width:0%"></div>
+                </div>
+                <small id="weekText">Henüz veri yok</small>
+            </div>
+        </div>
+
+        <!-- MOTİVASYON -->
+        <div class="col-md-12">
+            <div class="motivation-box glow" id="motivationBox">
+                <h4 id="motivationText">Bugün kendin için bir şey yaptın 💜</h4>
+            </div>
+        </div>
+
+        <!-- ZAMAN ÇİZELGESİ -->
+        <div class="col-md-6">
+            <div class="card-box">
+                <h5>🕒 Son Günler</h5>
+                <div class="timeline" id="timeline">
+                    <div class="timeline-item">Henüz kayıt yok</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROZETLER -->
+        <div class="col-md-6">
+            <div class="card-box text-center">
+                <h5>🏅 Rozetlerim</h5>
+                <div class="badge-row">
+                    <div class="badge-box active" id="b1"><span>🥉</span><br>Başlangıç</div>
+                    <div class="badge-box active" id="b2"><span>🥈</span><br>İstikrarlı</div>
+                    <div class="badge-box" id="b3"><span>🥇</span><br>Efsane</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let motivations = [
+            "Küçük adımlar büyük değişimler yaratır 🌱",
+            "Bugün kendinle gurur duyabilirsin 💖",
+            "Devam ettiğin sürece kazanıyorsun ✨"
+        ];
+
+        let index = 0;
+        setInterval(() => {
+            index = (index + 1) % motivations.length;
+            document.getElementById("motivationText").innerText = motivations[index];
+        }, 3000);
+
+    </script>
+
+    <!-- CELEBRATION OVERLAY -->
+    <div id="celebrationOverlay">
+        <div class="firework"></div>
+        <div class="firework"></div>
+        <div class="firework"></div>
+        <div class="celebrate-text">🎉 Harikasın! 🎉</div>
+    </div>
+
+    <script>
+
+        const weeklyData = JSON.parse(localStorage.getItem("weeklyData")) || {
+            pzt: 0, sal: 0, car: 0, per: 0, cum: 0, cmt: 0, paz: 0
+        };
+
+        const days = ["pzt", "sal", "car", "per", "cum", "cmt", "paz"];
+        let total = 0;
+        days.forEach(d => total += weeklyData[d]);
+
+        // BUGÜN
+        let today = 0;
+        for (let i = days.length - 1; i >= 0; i--) {
+            if (weeklyData[days[i]] > 0) {
+                today = weeklyData[days[i]];
+                break;
+            }
+        }
+
+        document.getElementById("todayPercent").innerText = today + "%";
+        document.getElementById("todayBar").style.width = today + "%";
+        document.getElementById("todayText").innerText =
+            today === 0 ? "Bugün henüz giriş yok" : "Bugün ilerleme kaydettin 💜";
+
+        // HAFTA
+        let weekPercent = Math.round((total / 700) * 100);
+        document.getElementById("weekPercent").innerText = weekPercent + "%";
+        document.getElementById("weekBar").style.width = weekPercent + "%";
+        document.getElementById("weekText").innerText =
+            weekPercent === 0 ? "Bu hafta henüz veri yok" : "Haftalık ilerlemen oluştu ✨";
+
+        // TIMELINE
+        const timeline = document.getElementById("timeline");
+        timeline.innerHTML = "";
+
+        days.forEach(d => {
+            if (weeklyData[d] > 0) {
+                const div = document.createElement("div");
+                div.className = "timeline-item";
+                div.innerText = d.toUpperCase() + " – %" + weeklyData[d];
+                timeline.appendChild(div);
+            }
+        });
+
+        if (!timeline.children.length) {
+            timeline.innerHTML = `<div class="timeline-item">Henüz kayıt yok</div>`;
+        }
+
+        // ROZETLER
+        b1.classList.toggle("active", weekPercent >= 30);
+        b2.classList.toggle("active", weekPercent >= 60);
+        b3.classList.toggle("active", weekPercent >= 90);
+
+    </script>
+</body>
+
+</html>

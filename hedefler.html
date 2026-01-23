@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>GrowMe | Hedefler</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(120deg, #fdfbff, #f7eefe, #fce4ec);
+            min-height: 100vh;
+            font-family: 'Poppins', Arial, sans-serif;
+            background-size: 300% 300%;
+            animation: bgAnim 12s ease infinite;
+            display: block;
+        }
+
+        @keyframes bgAnim {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .top-bar {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            padding: 22px 26px;
+            border-radius: 25px;
+            margin: 20px auto;
+            max-width: 900px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-box {
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.10);
+            transition: 0.4s ease;
+            margin: 20px auto;
+            padding: 30px;
+            max-width: 900px;
+        }
+
+        .card-box:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 25px 55px rgba(0, 0, 0, 0.15);
+        }
+
+        .goal-item {
+            background: linear-gradient(135deg, #fdfbff, #f7f3ff);
+            padding: 18px 20px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            transition: 0.35s ease;
+            border-left: 6px solid #C6B9FF;
+        }
+
+        .goal-item:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .goal-item::after {
+            content: "✨ küçük adımlar büyük değişimler";
+            display: block;
+            margin-top: 6px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .goal-item strong { font-size: 17px; font-weight: 600; color: #333; }
+        .goal-item small { color: #777; font-size: 13px; }
+
+        .btn-save {
+            background: linear-gradient(135deg, #FFCDEB, #C6B9FF);
+            color: white;
+            border-radius: 18px;
+            padding: 12px;
+            font-weight: bold;
+            border: none;
+            transition: 0.3s;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(198, 185, 255, 0.5);
+        }
+
+        input, textarea, select {
+            border-radius: 15px !important;
+            border: 1px solid #ddd;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #C6B9FF;
+            box-shadow: 0 0 0 3px rgba(198, 185, 255, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-bar">
+        <h3>🎯 Hedeflerim</h3>
+        <a href="dashboard.html" class="btn btn-outline-secondary">← Dashboard</a>
+    </div>
+
+    <div class="card-box">
+        <h5 class="mb-3">Yeni Hedef Ekle</h5>
+        <div class="mb-3">
+            <label class="form-label">Hedef Adı</label>
+            <input type="text" id="goalName" class="form-control" placeholder="Örn: Spor yapmak">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Tür</label>
+            <select id="goalType" class="form-select">
+                <option value="">Seçiniz</option>
+                <option value="dakika">Dakika</option>
+                <option value="saat">Saat</option>
+                <option value="sayfa">Sayfa</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Günlük Minimum</label>
+            <input type="number" id="dailyMin" class="form-control" placeholder="Örn: 20">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Açıklama</label>
+            <textarea id="goalDesc" class="form-control" rows="3"></textarea>
+        </div>
+
+        <button class="btn btn-save w-100" onclick="saveGoal()">Kaydet</button>
+    </div>
+
+    <div class="card-box">
+        <h5 class="mb-3">Hedef Listem</h5>
+        <div id="goalList"></div>
+    </div>
+
+    <script>
+        let editingGoalId = null;
+        const currentUser = localStorage.getItem("username");
+
+        if (!currentUser) {
+            alert("Oturum bulunamadı. Lütfen giriş yap.");
+            window.location.href = "/";
+        }
+
+        // ============ KAYDET / GÜNCELLE ============
+        function saveGoal() {
+            const name = goalName.value.trim();
+            const type = goalType.value;
+            const min = Number(dailyMin.value) || 0;
+            const desc = goalDesc.value.trim();
+
+            if (!name || !type || !min) {
+                alert("Lütfen tüm alanları doldur.");
+                return;
+            }
+
+            // UPDATE
+            if (editingGoalId) {
+                fetch("/goals/" + editingGoalId, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, type, dailyMin: min, desc })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        resetForm();
+                        loadGoals(data.goals);
+                    } else {
+                        alert(data.message);
+                    }
+                });
+                return;
+            }
+
+            // CREATE
+            fetch("/goals", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: currentUser,
+                    name,
+                    type,
+                    dailyMin: min,
+                    desc
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    resetForm();
+                    loadGoals(data.goals);
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+
+        // ============ LİSTE ============
+        function loadGoals(goals) {
+            const list = document.getElementById("goalList");
+            list.innerHTML = "";
+
+            goals.forEach(g => {
+                const div = document.createElement("div");
+                div.className = "goal-item";
+
+                div.innerHTML = `
+                    <div>
+                        <strong>${g.name}</strong><br>
+                        ${g.dailyMin} ${g.type} / gün<br>
+                        <small>${g.desc || ""}</small>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-warning mb-1" onclick="editGoal('${g.id}','${g.name}','${g.type}','${g.dailyMin}','${g.desc || ""}')">Düzenle</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteGoal('${g.id}')">Sil</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // ============ DÜZENLE ============
+        function editGoal(id, name, type, dailyMinVal, desc) {
+            goalName.value = name;
+            goalType.value = type;
+            dailyMin.value = dailyMinVal || 0;
+            goalDesc.value = desc;
+
+            editingGoalId = id;
+
+            const btn = document.querySelector(".btn-save");
+            btn.innerText = "Güncelle";
+            btn.classList.remove("btn-save");
+            btn.classList.add("btn-success");
+        }
+
+        // ============ SİL ============
+        function deleteGoal(id) {
+            if (!confirm("Bu hedefi silmek istiyor musun?")) return;
+
+            fetch("/goals/" + id, { method: "DELETE" })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        loadGoals(data.goals);
+                    } else {
+                        alert(data.message);
+                    }
+                });
+        }
+
+        // ============ FORM RESET ============
+        function resetForm() {
+            goalName.value = "";
+            goalType.value = "";
+            dailyMin.value = "";
+            goalDesc.value = "";
+            editingGoalId = null;
+
+            const btn = document.querySelector(".btn-success") || document.querySelector(".btn-save");
+            btn.innerText = "Kaydet";
+            btn.classList.remove("btn-success");
+            btn.classList.add("btn-save");
+        }
+
+        // ============ LOAD ============
+        window.onload = function () {
+            fetch("/goals?username=" + currentUser)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        loadGoals(data.goals);
+                    }
+                });
+        }
+    </script>
+
+</body>
+
+</html>

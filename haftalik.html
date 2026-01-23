@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>GrowMe | Haftalık Özet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #FFF6ED, #F3E8FF, #E9EDFF);
+            background-size: 300% 300%;
+            animation: bgAnim 14s ease infinite;
+            font-family: 'Poppins', Arial, sans-serif;
+        }
+
+        @keyframes bgAnim {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* TOP BAR */
+        .top-bar {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(14px);
+            padding: 22px 26px;
+            border-radius: 28px;
+            margin: 25px auto;
+            max-width: 900px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        /* CARD */
+        .card-box {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 30px;
+            padding: 28px;
+            margin: 25px auto;
+            max-width: 900px;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.1);
+            transition: 0.4s ease;
+        }
+
+        .card-box:hover {
+            transform: translateY(-6px);
+        }
+
+        /* GRAPH */
+        .graph-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 210px;
+            margin-top: 30px;
+        }
+
+        .day-bar {
+            width: 12%;
+            text-align: center;
+        }
+
+        .bar {
+            width: 100%;
+            height: 0;
+            background: linear-gradient(180deg, #FFCDEB, #C6B9FF);
+            border-radius: 16px;
+            transition: 0.6s cubic-bezier(.68, -0.55, .27, 1.55);
+
+        }
+
+        .day-bar small {
+            display: block;
+            margin-top: 10px;
+            color: #6b5b7a;
+        }
+
+        /* RESULT TEXT */
+        .result {
+            font-weight: 500;
+            font-size: 18px;
+            margin-top: 22px;
+            color: #5a4a6a;
+        }
+
+        /* GLOW ANIMATION */
+        .glow {
+            color: #A798FF;
+            animation: glowAnim 1.6s infinite alternate;
+        }
+
+        @keyframes glowAnim {
+            from {
+                text-shadow: 0 0 6px #C6B9FF;
+            }
+
+            to {
+                text-shadow:
+                    0 0 14px #FFCDEB,
+                    0 0 28px #C6B9FF;
+            }
+        }
+
+        /* BADGES */
+        .badges {
+            display: flex;
+            gap: 26px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .badge-box {
+            text-align: center;
+            opacity: 0.3;
+            transition: 0.4s;
+        }
+
+        .badge-box.active {
+            opacity: 1;
+            transform: scale(1.15);
+            filter: drop-shadow(0 8px 18px rgba(198, 185, 255, 0.6));
+        }
+
+        .badge-box span {
+            font-size: 40px;
+        }
+
+        /* CELEBRATION */
+        #celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #FFCDEB, #C6B9FF);
+            padding: 45px 50px;
+            border-radius: 35px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+            transition: 0.6s cubic-bezier(.68, -0.55, .27, 1.55);
+            z-index: 999;
+        }
+
+        #celebration.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP -->
+    <div class="top-bar d-flex justify-content-between align-items-center">
+        <h3>📈 Haftalık Hedef Özeti</h3>
+        <a href="dashboard.html" class="btn btn-outline-secondary">← Dashboard</a>
+    </div>
+
+    <!-- INPUT -->
+    <div class="card-box">
+        <h5>📝 Günlük Hedef Tamamlama (dakika)</h5>
+
+        <div class="row g-2 mt-3">
+            <div class="col"><input id="pzt" type="number" class="form-control" placeholder="Pzt"></div>
+            <div class="col"><input id="sal" type="number" class="form-control" placeholder="Sal"></div>
+            <div class="col"><input id="car" type="number" class="form-control" placeholder="Çar"></div>
+            <div class="col"><input id="per" type="number" class="form-control" placeholder="Per"></div>
+            <div class="col"><input id="cum" type="number" class="form-control" placeholder="Cum"></div>
+            <div class="col"><input id="cmt" type="number" class="form-control" placeholder="Cmt"></div>
+            <div class="col"><input id="paz" type="number" class="form-control" placeholder="Paz"></div>
+        </div>
+
+        <button onclick="hesapla()" class="btn btn-primary mt-4">Hesapla</button>
+        <p class="result" id="sonuc"></p>
+    </div>
+
+    <!-- GRAPH -->
+    <div class="card-box">
+        <h5>📊 Haftalık Zaman Grafiği</h5>
+        <div class="graph-area">
+            <div class="day-bar">
+                <div id="bar-pzt" class="bar"></div><small>Pzt</small>
+            </div>
+            <div class="day-bar">
+                <div id="bar-sal" class="bar"></div><small>Sal</small>
+            </div>
+            <div class="day-bar">
+                <div id="bar-car" class="bar"></div><small>Çar</small>
+            </div>
+            <div class="day-bar">
+                <div id="bar-per" class="bar"></div><small>Per</small>
+            </div>
+            <div class="day-bar">
+                <div id="bar-cum" class="bar"></div><small>Cum</small>
+            </div>
+            <div class="day-bar">
+                <div id="bar-cmt" class="bar"></div><small>Cmt</small>
+            </div>
+            <div class="day-bar">
+                <div id="bar-paz" class="bar"></div><small>Paz</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- BADGES -->
+    <div class="card-box text-center">
+        <h5>🏅 Rozetler</h5>
+        <div class="badges">
+            <div class="badge-box" id="badge1"><span>🥉</span><br>Başlangıç</div>
+            <div class="badge-box" id="badge2"><span>🥈</span><br>İstikrarlı</div>
+            <div class="badge-box" id="badge3"><span>🥇</span><br>Efsane</div>
+        </div>
+    </div>
+
+    <!-- CELEBRATION -->
+    <div id="celebration">
+        <h1>🎉</h1>
+        <p>EFSANESİN!</p>
+    </div>
+
+    <script>
+        function hesapla() {
+            let gunler = ["pzt", "sal", "car", "per", "cum", "cmt", "paz"];
+            let toplam = 0;
+            let sonuc = document.getElementById("sonuc");
+
+            // reset
+            sonuc.classList.remove("glow");
+            document.querySelectorAll(".badge-box").forEach(b => b.classList.remove("active"));
+
+            gunler.forEach(g => {
+                let val = Number(document.getElementById(g).value) || 0;
+                toplam += val;
+                document.getElementById("bar-" + g).style.height = val * 2 + "px";
+            });
+
+            if (toplam >= 180) {
+                sonuc.innerText = "🔥 EFSANESİN! " + toplam + " dakika spor yaptın!";
+                sonuc.classList.add("glow");
+                badge1.classList.add("active");
+                badge2.classList.add("active");
+                badge3.classList.add("active");
+                celebration.classList.add("show");
+                setTimeout(() => celebration.classList.remove("show"), 2000);
+            }
+            else if (toplam >= 90) {
+                sonuc.innerText = "🌱 İstikrarlısın! " + toplam + " dakika.";
+                sonuc.classList.add("glow");
+                badge1.classList.add("active");
+                badge2.classList.add("active");
+            }
+            else if (toplam >= 30) {
+                sonuc.innerText = "💜 Başlangıç yaptın! " + toplam + " dakika.";
+                badge1.classList.add("active");
+            }
+            else {
+                sonuc.innerText = "💜 Küçük adımlar da ilerlemedir.";
+            }
+        }
+
+        fetch("/weekly", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username: localStorage.getItem("username"),
+                pzt: Number(pzt.value) || 0,
+                sal: Number(sal.value) || 0,
+                car: Number(car.value) || 0,
+                per: Number(per.value) || 0,
+                cum: Number(cum.value) || 0,
+                cmt: Number(cmt.value) || 0,
+                paz: Number(paz.value) || 0,
+                total: toplam
+            })
+        });
+
+    </script>
+
+</body>
+
+</html>

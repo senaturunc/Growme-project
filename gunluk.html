@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>GrowMe | Günlüğüm</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(120deg, #FFF6ED, #FFCDEB, #C6B9FF);
+            background-size: 300% 300%;
+            animation: bgAnim 12s ease infinite;
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+        }
+
+        @keyframes bgAnim {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .top-bar {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            padding: 22px 26px;
+            border-radius: 30px;
+            margin-bottom: 35px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        }
+
+
+        .card-box {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(14px);
+            border-radius: 28px;
+            padding: 28px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+            transition: 0.4s;
+        }
+
+        .card-box:hover {
+            transform: translateY(-6px) scale(1.01);
+        }
+
+
+        .entry {
+            background: #fff;
+            border-left: 6px solid #C6B9FF;
+            padding: 18px 20px;
+            border-radius: 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            transition: 0.3s;
+        }
+
+        .entry:hover {
+            transform: translateY(-4px);
+        }
+
+
+        .streak {
+            background: linear-gradient(135deg, #FFCDEB, #C6B9FF);
+            color: white;
+            padding: 12px;
+            border-radius: 18px;
+            text-align: center;
+            margin-bottom: 18px;
+            font-weight: bold;
+            box-shadow: 0 10px 25px rgba(198, 185, 255, 0.5);
+        }
+
+
+        .mood {
+            font-size: 32px;
+            cursor: pointer;
+            transition: 0.35s;
+            opacity: 0.6;
+            transition: 0.3s cubic-bezier(.68, -0.55, .27, 1.55);
+        }
+
+        .mood:hover {
+            transform: scale(1.3);
+            opacity: 1;
+            transform: scale(1.4) rotate(-5deg);
+        }
+
+        .mood.selected {
+            transform: scale(1.5);
+            opacity: 1;
+            filter: drop-shadow(0 0 10px #C6B9FF);
+            transform: scale(1.6);
+        }
+
+        textarea {
+            border-radius: 18px;
+            border: 1px solid #eee;
+            padding: 14px;
+            background: #fffdf9;
+            font-size: 15px;
+        }
+
+  
+
+    </style>
+</head>
+
+<body class="container py-4 ">
+
+    <div class="top-bar d-flex align-items-center justify-content-between">
+        <h3 style="font-family:'Playfair Display', serif; margin:0; color: black;">📓 Günlüğüm</h3>
+
+        <div id="userBadge" class="text-muted text-center" style="flex: 1;"></div>
+        <a href="dashboard.html" class="btn btn-outline-secondary">← Dashboard</a>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- FORM -->
+        <div class="col-md-4">
+            <div class="card-box">
+                <div class="streak" id="streakBox">🔥 Günlük Serisi: 0 gün</div>
+
+                <h5>Bugün Nasılsın?</h5>
+
+                <div class="mood-box">
+                    <span class="mood" onclick="selectMood(this)">😞</span>
+                    <span class="mood" onclick="selectMood(this)">😐</span>
+                    <span class="mood" onclick="selectMood(this)">😊</span>
+                    <span class="mood" onclick="selectMood(this)">😄</span>
+                    <span class="mood" onclick="selectMood(this)">🤩</span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Tarih</label>
+                    <input type="date" id="entryDate" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Bugün Nasılsın?</label>
+                    <textarea id="entryText" class="form-control" rows="5"></textarea>
+                </div>
+
+                <button class="btn btn-primary w-100" id="saveBtn" onclick="addEntry()">Kaydet</button>
+            </div>
+        </div>
+
+        <!-- LİSTE -->
+        <div class="col-md-8">
+            <div class="card-box">
+                <h5>Günlük Kayıtlarım</h5>
+                <div id="entryList"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let editingId = null;
+        let selectedMood = "";
+
+        const currentUser = localStorage.getItem("username");
+
+        if (!currentUser) {
+            alert("Oturum yok, giriş yap.");
+            window.location.href = "/";
+        } else {
+            document.getElementById("userBadge").innerText = "👤 " + currentUser;
+        }
+
+        function selectMood(el) {
+            document.querySelectorAll(".mood").forEach(m => m.classList.remove("selected"));
+            el.classList.add("selected");
+            selectedMood = el.innerText;
+        }
+
+        // CREATE + UPDATE
+        function addEntry() {
+            const date = entryDate.value;
+            const text = entryText.value;
+
+            if (!date || !text) {
+                alert("Tarih ve metin boş olamaz.");
+                return;
+            }
+            if (!selectedMood) {
+                alert("Lütfen bir ruh hali seç 😊");
+                return;
+            }
+
+
+            if (editingId) {
+                fetch("/journal/" + editingId, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ date, text, mood: selectedMood })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            resetForm();
+                            updateUI(data);
+                        }
+                    });
+                return;
+            }
+
+            fetch("/journal", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: currentUser, date, text, mood: selectedMood })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        resetForm();
+                        updateUI(data);
+                    }
+                });
+        }
+
+        // DELETE
+        function deleteEntry(id) {
+            if (!confirm("Silmek istediğine emin misin?")) return;
+
+            fetch("/journal/" + id, { method: "DELETE" })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        updateUI(data);
+                    }
+                });
+        }
+
+        // EDIT
+        function editEntry(id, date, text, mood) {
+            entryDate.value = date;
+            entryText.value = text;
+            selectedMood = mood;
+
+            document.querySelectorAll(".mood").forEach(m => {
+                m.classList.remove("selected");
+                if (m.innerText === mood) m.classList.add("selected");
+            });
+
+            editingId = id;
+            saveBtn.innerText = "Güncelle";
+            saveBtn.classList.remove("btn-primary");
+            saveBtn.classList.add("btn-success");
+        }
+
+        // RESET
+        function resetForm() {
+            entryDate.value = "";
+            entryText.value = "";
+            selectedMood = "";
+            editingId = null;
+
+            document.querySelectorAll(".mood").forEach(m => m.classList.remove("selected"));
+
+            saveBtn.innerText = "Kaydet";
+            saveBtn.classList.remove("btn-success");
+            saveBtn.classList.add("btn-primary");
+        }
+
+        // LOAD
+        function updateUI(data) {
+            streakBox.innerText = "🔥 Günlük Serisi: " + data.streak + " gün";
+            renderList(data.journals);
+        }
+
+        function renderList(journals) {
+            entryList.innerHTML = "";
+
+            if (journals.length === 0) {
+                entryList.innerHTML = "<p class='text-muted'>Henüz günlük eklemedin 🌱</p>";
+                return;
+            }
+
+            journals.forEach(j => {
+                const div = document.createElement("div");
+                div.className = "entry";
+                div.innerHTML = `
+            <strong>${j.date}</strong> ${j.mood || ""}<br>
+            ${j.text}
+            <div class="mt-2">
+                <button class="btn btn-sm btn-warning me-2" onclick="editEntry('${j.id}','${j.date}',\`${j.text}\`,'${j.mood || ""}')">Düzenle</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteEntry('${j.id}')">Sil</button>
+            </div>
+        `;
+                entryList.prepend(div);
+            });
+        }
+
+
+        // INIT
+        window.onload = () => {
+            fetch("/journal?username=" + currentUser)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        updateUI(data);
+                    }
+                });
+        };
+    </script>
+
+</body>
+
+</html>

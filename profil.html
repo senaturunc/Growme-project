@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>GrowMe | Profil</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(120deg, #fdfbfb, #fce4ec, #e8eaf6);
+            min-height: 100vh;
+            font-family: 'Poppins', Arial, sans-serif;
+        }
+
+        /* TOP BAR */
+        .top-bar {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-radius: 30px;
+            padding: 18px 26px;
+        }
+
+        /* PROFILE CARD */
+        .profile-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(14px);
+            border-radius: 35px;
+            padding: 40px 35px;
+            max-width: 900px;
+            margin: 20px auto;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+            text-align: center;
+        }
+
+        /* AVATAR */
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f8bbd0, #c5cae9);
+            box-shadow: 0 10px 30px rgba(198, 185, 255, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            color: white;
+            margin: 0 auto 15px;
+            cursor: pointer;
+            transition: 0.4s;
+        }
+
+        .avatar:hover {
+            transform: scale(1.08);
+        }
+
+        /* USERNAME */
+        .username {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        /* BIO */
+        .bio-box {
+            background: #F6F7FB;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .bio-box textarea {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            resize: none;
+            min-height: 80px;
+        }
+
+        .save-btn {
+            margin-top: 10px;
+        }
+
+        /* STATS */
+        .stats {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #FFCDEB, #C6B9FF);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 22px;
+            min-width: 120px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            font-size: 15px;
+        }
+
+        /* BADGES */
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 25px;
+        }
+
+        .badge-box {
+            text-align: center;
+            font-size: 30px;
+            opacity: 0.4;
+            transition: 0.4s;
+        }
+
+        .badge-box.active {
+            opacity: 1;
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 8px #c6b9ff);
+        }
+
+        /* MOOD */
+        .mood {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .mood span {
+            font-size: 30px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: 0.3s;
+            background-color: white;
+            border-radius: 50%;
+            padding: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mood span:hover {
+            transform: scale(1.3);
+        }
+
+        .avatar:active {
+            transform: scale(0.95);
+        }
+
+        .mood span.active {
+            filter: drop-shadow(0 0 6px #C6B9FF);
+            transform: scale(1.4);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <div class="top-bar d-flex justify-content-between align-items-center">
+        <h3 id="profileTitle">👤 Profil</h3>
+        <a href="dashboard.html" class="btn btn-outline-secondary">← Dashboard</a>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="profile-card">
+
+        <!-- AVATAR -->
+        <div class="avatar" id="avatar" onclick="changeAvatar(this)">🌸</div>
+
+        <!-- USERNAME -->
+        <div class="username" id="username">Kullanıcı Adı</div>
+
+        <!-- BIO -->
+        <div class="bio">
+            <textarea id="bioInput" class="form-control" rows="3" placeholder="Kendini tanıt..."></textarea>
+            <button class="btn btn-primary mt-2" onclick="saveBio()">Kaydet</button>
+        </div>
+
+
+        <!-- STATS -->
+        <div class="stats">
+            <div class="stat-box">
+                🔥<br>
+                <strong>Streak</strong><br>
+                <span id="streakStat">0</span> gün
+            </div>
+
+            <div class="stat-box">
+                📔<br>
+                <strong>Günlük</strong><br>
+                <span id="journalStat">0</span> kayıt
+            </div>
+
+            <div class="stat-box">
+                💖<br>
+                <strong>Mood</strong><br>
+                <span id="moodStat">0</span> seçim
+            </div>
+        </div>
+
+
+
+        <!-- BADGES -->
+        <div class="badges">
+            <div class="badge-box active">🥉<br><small>Başlangıç</small></div>
+            <div class="badge-box active">🥈<br><small>İstikrarlı</small></div>
+            <div class="badge-box">🥇<br><small>Efsane</small></div>
+        </div>
+
+        <!-- MOOD -->
+        <div class="mood">
+            <h5 class="mt-4">Şu anki ruh halim</h5>
+            <span onclick="setMood('😄', this)">😄</span>
+            <span onclick="setMood('😐', this)">😐</span>
+            <span onclick="setMood('😔', this)">😔</span>
+            <div id="moodText" class="mt-2">😄</div>
+        </div>
+
+    </div>
+
+    <script>
+        const currentUser = localStorage.getItem("username");
+
+        if (!currentUser) {
+            alert("Oturum bulunamadı, lütfen giriş yap.");
+            window.location.href = "/";
+        }
+
+
+        // PROFİL YÜKLE
+        function loadProfile() {
+            fetch("/api/profile?username=" + currentUser)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) { alert("Kullanıcı bulunamadı"); return; }
+                    const p = data.profile;
+
+                    document.getElementById("username").innerText = currentUser;
+                    document.getElementById("profileTitle").innerText = "👤 " + currentUser;
+                    document.getElementById("bioInput").value = p.bio || "";
+                    document.getElementById("avatar").innerText = p.avatar || "🌸";
+                    document.getElementById("streakStat").innerText = p.streak || 0;
+                    document.getElementById("journalStat").innerText = p.journals || 0;
+                    document.getElementById("moodStat").innerText = p.moodCount || 0;
+                    document.getElementById("moodText").innerText = p.mood || "😄";
+
+                    // Mood span aktif et
+                    document.querySelectorAll(".mood span").forEach(s => {
+                        if (s.innerText === p.mood) s.classList.add("active");
+                    });
+                });
+        }
+        loadProfile();
+
+        // MOOD
+        function setMood(mood, el) {
+            document.querySelectorAll(".mood span").forEach(s => s.classList.remove("active"));
+            el.classList.add("active");
+            document.getElementById("moodText").innerText = mood;
+
+            fetch("/api/profile/mood", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: currentUser, mood })
+            }).then(res => res.json())
+                .then(data => {
+                    if (data.success) document.getElementById("moodStat").innerText = data.moodCount;
+                });
+        }
+
+        // AVATAR
+        function changeAvatar() {
+            const avatars = ["🌸", "🦋", "🌙", "⭐", "🔥", "💎"];
+            const random = avatars[Math.floor(Math.random() * avatars.length)];
+            document.getElementById("avatar").innerText = random;
+
+            fetch("/api/profile/avatar", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: currentUser, avatar: random })
+            });
+        }
+
+        // BIO
+        function saveBio() {
+            const bio = document.getElementById("bioInput").value;
+            fetch("/api/profile/bio", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: currentUser, bio })
+            }).then(res => res.json())
+                .then(data => {
+                    if (data.success) alert("Hakkımda kaydedildi ✨");
+                });
+        }
+    </script>
+
+</body>
+
+</html>

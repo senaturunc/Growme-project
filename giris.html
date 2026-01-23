@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrowMe | Giriş / Üye Ol</title>
+
+    <!-- BOOTSTRAP -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- GOOGLE FONT -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-background {
+            background: linear-gradient(300deg,
+                    #fdffb6,
+                    #c599f1,
+                    #edbb95,
+                    #E1F5C4,
+                    #94aed4,
+                    #ee9ca7);
+            background-size: 360% 360%;
+            animation: gradient-animation 20s ease infinite;
+        }
+
+        @keyframes gradient-animation {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .glass-card {
+            width: 400px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.30);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.45);
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #C6B9FF;
+            color: #fff;
+            border-radius: 10px;
+        }
+
+        .nav-tabs .nav-link {
+            color: #4a4a4a;
+        }
+
+        .login-btn {
+            background-color: #C6B9FF;
+            color: white;
+            border-radius: 12px;
+        }
+
+        .login-btn:hover {
+            background-color: #A798FF;
+        }
+
+        .register-btn {
+            background-color: #FFCDEB;
+            color: white;
+            border-radius: 12px;
+        }
+
+        .register-btn:hover {
+            background-color: #FFB4D6;
+        }
+
+        small.validation-error {
+            color: #d77a7a;
+            font-size: 13px;
+        }
+
+        .subtitle {
+            color: #555;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body class="gradient-background">
+
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <div class="glass-card p-4 shadow-lg">
+
+            <h2 class="text-center mb-1" style="font-family: 'Great Vibes'; font-size: 42px;">
+                GrowMe
+            </h2>
+
+            <p class="text-center subtitle mb-4">
+                Hedeflerini takip et, gelişimini gör ✨
+            </p>
+
+            <!-- TABS -->
+            <ul class="nav nav-tabs mb-3">
+                <li class="nav-item">
+                    <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login">
+                        Giriş Yap
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register">
+                        Üye Ol
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+
+                <!-- LOGIN -->
+                <div class="tab-pane fade show active" id="login">
+                    <div class="mb-3">
+                        <label class="form-label">Kullanıcı Adı</label>
+                        <input type="text" class="form-control" id="login-user">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Şifre</label>
+                        <input type="password" class="form-control" id="login-pass">
+                    </div>
+                    <button type="button" class="btn w-100 login-btn" id="loginBtn">
+                        Giriş Yap
+                    </button>
+                </div>
+
+                <!-- REGISTER -->
+                <div class="tab-pane fade" id="register">
+                    <div class="mb-3">
+                        <label class="form-label">Ad Soyad</label>
+                        <input type="text" class="form-control" id="reg-name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kullanıcı Adı</label>
+                        <input type="text" class="form-control" id="reg-username">
+                        <small class="validation-error" id="username-error"></small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">E-posta</label>
+                        <input type="email" class="form-control" id="reg-email">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Şifre</label>
+                        <input type="password" class="form-control" id="reg-password">
+                        <small class="validation-error" id="password-error"></small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Doğum Tarihi</label>
+                        <input type="date" class="form-control" id="reg-birth">
+                    </div>
+                    <button type="button" class="btn w-100 register-btn" id="registerBtn">
+                        Üye Ol
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- BOOTSTRAP JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+    <script>
+        // GİRİŞ
+        document.getElementById("loginBtn").addEventListener("click", async function () {
+            const username = document.getElementById("login-user").value.trim();
+            const password = document.getElementById("login-pass").value;
+
+            if (!username || !password) {
+                alert("Lütfen tüm alanları doldurunuz!");
+                return;
+            }
+
+            try {
+                const res = await fetch("/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    localStorage.setItem("username", data.username);
+                    alert("Hoş geldin " + data.username + " 💖");
+                    window.location.href = "dashboard.html";
+
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Sunucuya bağlanırken bir hata oluştu.");
+            }
+        });
+
+        // KAYIT
+        document.getElementById("registerBtn").addEventListener("click", async function () {
+            const name = document.getElementById("reg-name").value.trim();
+            const username = document.getElementById("reg-username").value.trim();
+            const email = document.getElementById("reg-email").value.trim();
+            const password = document.getElementById("reg-password").value;
+            const birth = document.getElementById("reg-birth").value;
+
+            let valid = true;
+
+            // Boş alan kontrolü
+            if (!name || !username || !email || !password || !birth) {
+                alert("Lütfen tüm alanları doldurunuz!");
+                return;
+            }
+
+            // Kullanıcı adı kontrol
+            if (username.length < 4) {
+                document.getElementById("username-error").innerText =
+                    "Kullanıcı adı en az 4 karakter olmalı.";
+                valid = false;
+            } else {
+                document.getElementById("username-error").innerText = "";
+            }
+
+            // Şifre kontrol
+            if (password.length < 6) {
+                document.getElementById("password-error").innerText =
+                    "Şifre en az 6 karakter olmalı.";
+                valid = false;
+            } else {
+                document.getElementById("password-error").innerText = "";
+            }
+
+            if (!valid) return;
+
+            try {
+                const res = await fetch("/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, username, email, password, birth })
+                });
+
+
+                const data = await res.json();
+                console.log("LOGIN RESPONSE:", data);
+                if (data.success) {
+                    alert("Kayıt başarılı! 💖 Artık giriş yapabilirsin.");
+                    document.getElementById("login-tab").click();
+                } else {
+                    alert(data.message || "Kayıt başarısız");
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert("Sunucuya bağlanırken bir hata oluştu.");
+            }
+        });
+        async function login() {
+            const username = document.getElementById("login-user").value.trim();
+            const password = document.getElementById("login-pass").value;
+
+            if (!username || !password) {
+                alert("Lütfen tüm alanları doldurunuz!");
+                return;
+            }
+
+            const res = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await res.json();
+            console.log("LOGIN RESPONSE:", data);
+
+            if (!data.success) {
+                alert(data.message || "Kullanıcı adı veya şifre yanlış");
+                return;
+            }
+
+            localStorage.setItem("username", data.username);
+            window.location.href = "dashboard.html";
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("loginBtn").addEventListener("click", async function () {
+                
+            });
+        });
+
+    </script>
+</body>
+</html>
