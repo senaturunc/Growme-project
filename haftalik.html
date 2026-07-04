@@ -212,6 +212,13 @@
         </div>
     </div>
 
+    <!-- AI WEEKLY REPORT CARD -->
+    <div class="card-box" style="border: 2px solid transparent; background-clip: padding-box, border-box; background-origin: padding-box, border-box; background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), linear-gradient(135deg, #FFCDEB, #C6B9FF); box-shadow: 0 15px 40px rgba(198, 185, 255, 0.25); margin-bottom: 30px;">
+        <h5 class="mb-3">🧠 AI Haftalık Gelişim Raporu</h5>
+        <p id="aiReportText" style="font-style: italic; color: #5a4a6a; font-size: 15px; line-height: 1.6;">Haftalık performansınızı yapay zekaya analiz ettirip gelişim tavsiyeleri almak için aşağıdaki butona tıklayın.</p>
+        <button onclick="getAIWeeklyReport()" class="btn btn-primary mt-2" style="background: linear-gradient(135deg, #964bb9, #C6B9FF); border: none; border-radius: 12px; padding: 8px 20px; font-weight: 500;">Haftalık Rapor Oluştur ✨</button>
+    </div>
+
     <!-- BADGES -->
     <div class="card-box text-center">
         <h5>🏅 Rozetler</h5>
@@ -229,7 +236,36 @@
     </div>
 
     <script>
-        function hesapla() {
+        const currentUser = localStorage.getItem("username");
+        if (!currentUser) {
+            window.location.replace("/");
+        }
+
+        // Sayfa yüklendiğinde eski verileri veritabanından çekip dolduralım
+        fetch("/weekly?username=" + currentUser)
+            .then(res => res.json())
+            .then(res => {
+                if (res.success && res.data) {
+                    const d = res.data;
+                    document.getElementById("pzt").value = d.pzt || "";
+                    document.getElementById("sal").value = d.sal || "";
+                    document.getElementById("car").value = d.car || "";
+                    document.getElementById("per").value = d.per || "";
+                    document.getElementById("cum").value = d.cum || "";
+                    document.getElementById("cmt").value = d.cmt || "";
+                    document.getElementById("paz").value = d.paz || "";
+                    hesapla(true); // Veritabanından gelen verilerle grafiği çizelim, ama POST atmayalım!
+                }
+            })
+            .catch(err => console.error("Eski haftalık veriler yüklenemedi:", err));
+
+        // Sayfa yüklendiğinde hafızada kayıtlı AI raporu varsa gösterelim
+        const savedReport = localStorage.getItem(`weeklyReport_${currentUser}`);
+        if (savedReport) {
+            document.getElementById("aiReportText").innerText = savedReport;
+        }
+
+        function hesapla(skipPost = false) {
             let gunler = ["pzt", "sal", "car", "per", "cum", "cmt", "paz"];
             let toplam = 0;
             let sonuc = document.getElementById("sonuc");
@@ -266,26 +302,89 @@
             else {
                 sonuc.innerText = "💜 Küçük adımlar da ilerlemedir.";
             }
+
+            if (!skipPost) {
+                fetch("/weekly", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        username: currentUser,
+                        pzt: Number(pzt.value) || 0,
+                        sal: Number(sal.value) || 0,
+                        car: Number(car.value) || 0,
+                        per: Number(per.value) || 0,
+                        cum: Number(cum.value) || 0,
+                        cmt: Number(cmt.value) || 0,
+                        paz: Number(paz.value) || 0,
+                        total: toplam
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log("Haftalık veriler başarıyla kaydedildi!");
+                    }
+                })
+                .catch(err => console.error("Haftalık veri kaydetme hatası:", err));
+            }
         }
 
-        fetch("/weekly", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                username: localStorage.getItem("username"),
-                pzt: Number(pzt.value) || 0,
-                sal: Number(sal.value) || 0,
-                car: Number(car.value) || 0,
-                per: Number(per.value) || 0,
-                cum: Number(cum.value) || 0,
-                cmt: Number(cmt.value) || 0,
-                paz: Number(paz.value) || 0,
-                total: toplam
-            })
-        });
+        function getAIWeeklyReport() {
+            const reportText = document.getElementById("aiReportText");
+            reportText.innerText = "AI Koçunuz haftalık performansınızı analiz ediyor... 📊";
 
+            // Hedefleri alalım
+            fetch("/goals?username=" + currentUser)
+                .then(res => res.json())
+                .then(goalsData => {
+                    let goalsList = [];
+                    if (goalsData.success && goalsData.goals.length > 0) {
+                        goalsList = goalsData.goals.map(g => `${g.name} (${g.dailyMin} ${g.type})`);
+                    }
+
+                    // Günlük girilen dakikaları alalım
+                    const pztVal = Number(document.getElementById("pzt").value) || 0;
+                    const salVal = Number(document.getElementById("sal").value) || 0;
+                    const carVal = Number(document.getElementById("car").value) || 0;
+                    const perVal = Number(document.getElementById("per").value) || 0;
+                    const cumVal = Number(document.getElementById("cum").value) || 0;
+                    const cmtVal = Number(document.getElementById("cmt").value) || 0;
+                    const pazVal = Number(document.getElementById("paz").value) || 0;
+                    const totalVal = pztVal + salVal + carVal + perVal + cumVal + cmtVal + pazVal;
+
+                    return fetch("/api/ai-weekly-report", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            username: currentUser,
+                            goals: goalsList,
+                            pzt: pztVal,
+                            sal: salVal,
+                            car: carVal,
+                            per: perVal,
+                            cum: cumVal,
+                            cmt: cmtVal,
+                            paz: pazVal,
+                            total: totalVal
+                        })
+                    });
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        reportText.innerText = data.report;
+                        localStorage.setItem(`weeklyReport_${currentUser}`, data.report);
+                    } else {
+                        reportText.innerText = "Rapor alınamadı. Lütfen hedeflerinizi hesaplayıp tekrar deneyin.";
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    reportText.innerText = "Bağlantı hatası. Lütfen daha sonra tekrar deneyin.";
+                });
+        }
     </script>
 
 </body>

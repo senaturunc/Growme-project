@@ -2,6 +2,20 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const sqlite3 = require("sqlite3").verbose();
+const fs = require("fs");
+
+// .env dosyasını manuel oku ve process.env'ye yükle
+const envPath = path.join(__dirname, ".env");
+if (fs.existsSync(envPath)) {
+    const envFile = fs.readFileSync(envPath, "utf-8");
+    envFile.split("\n").forEach(line => {
+        const [key, value] = line.split("=");
+        if (key && value) {
+            process.env[key.trim()] = value.trim();
+        }
+    });
+}
+
 
 // SQLite DB bağlantısı
 const db = new sqlite3.Database("./growme.db");
@@ -286,6 +300,177 @@ function calculateStreak(journals) {
     }
     return streak;
 }
+
+// ------------------- AI COACH ENDPOINT -------------------
+app.post("/api/ai-coach", async (req, res) => {
+    const { username, mood, goals, streak } = req.body;
+    
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        return res.json({ 
+            success: true, 
+            advice: `Merhaba ${username}! Bugün hedeflerine ulaşmak için küçük adımlarla başlamayı unutma. Her gün kendin için yapacağın küçük bir iyilik, uzun vadede büyük bir değişime dönüşecektir. Kendine inan!` 
+        });
+    }
+
+    const prompt = `Sen, GrowMe adında bir kişisel gelişim ve motivasyon uygulamasında profesyonel bir Kişisel Gelişim Koçusun (AI Coach). 
+Kullanıcı Adı: ${username}
+Bugünkü Ruh Hali: ${mood || "Belirtilmedi"}
+Belirlediği Hedefler: ${goals && goals.length ? goals.join(", ") : "Henüz hedef girilmedi"}
+Günlük Seri (Streak): ${streak || 0} gün
+
+Lütfen kullanıcıya durumuna özel, sıcak, samimi, teşvik edici ve motive edici kısa bir günlük koç mesajı yaz (maksimum 4-5 cümle). 
+Yanıtında sadece doğrudan bu mesajı ver, tırnak işareti veya 'Koç:' gibi başlıklar kullanma. Türkçe yanıt ver.`;
+
+    try {
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            }
+        );
+
+        const data = await response.json();
+        if (data.candidates && data.candidates[0].content.parts[0].text) {
+            const advice = data.candidates[0].content.parts[0].text.trim();
+            res.json({ success: true, advice });
+        } else {
+            console.log("Gemini Coach API Hata Detayı:", JSON.stringify(data));
+            throw new Error("API'den geçersiz yanıt alındı.");
+        }
+    } catch (error) {
+        console.error("Gemini API Hatası:", error);
+        res.json({
+            success: true,
+            advice: `Merhaba ${username}! Bugün kendini ${mood || "iyi"} hissettiğini görüyorum. Unutma, gelişim bir süreçtir ve her gün yeni bir başlangıçtır. Bugün hedefin için atacağın ufak bir adım bile yeterlidir. Kendine iyi davran.`
+        });
+    }
+});
+
+
+// ------------------- AI CHAT ENDPOINT -------------------
+app.post("/api/ai-chat", async (req, res) => {
+    const { username, message, history } = req.body;
+    
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        return res.json({ 
+            success: true, 
+            reply: "Merhaba! Sunucuda API anahtarı tanımlanmadığı için şu an sizinle sohbet edemiyorum. Ama hedefleriniz üzerinde çalışmaya devam etmeniz için her zaman buradayım!" 
+        });
+    }
+
+    const contents = [];
+    const systemPrompt = `Sen, GrowMe adında bir kişisel gelişim ve motivasyon uygulamasında uzman bir Kişisel Gelişim Koçusun (AI Coach). 
+Kullanıcı adı: ${username}.
+Kullanıcının alışkanlık edinme, verimlilik, motivasyon ve kişisel gelişim hakkındaki sorularına samimi, bilgili, pratik ve teşvik edici yanıtlar ver. 
+Tavsiyelerin uygulanabilir ve somut adımlar içersin. Yanıtların kısa, öz ve anlaşılır olsun (maksimum 4-5 cümle). Türkçe konuş.`;
+
+    if (history && history.length > 0) {
+        history.forEach(msg => {
+            contents.push({
+                role: msg.sender === "user" ? "user" : "model",
+                parts: [{ text: msg.text }]
+            });
+        });
+    }
+    
+    const userMessageText = history && history.length > 0 
+        ? message 
+        : `[Sistem Talimatı: ${systemPrompt}]\n\nKullanıcı Sorusu: ${message}`;
+        
+    contents.push({
+        role: "user",
+        parts: [{ text: userMessageText }]
+    });
+
+    try {
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents })
+            }
+        );
+
+        const data = await response.json();
+        if (data.candidates && data.candidates[0].content.parts[0].text) {
+            const reply = data.candidates[0].content.parts[0].text.trim();
+            res.json({ success: true, reply });
+        } else {
+            console.log("Gemini API Hata Detayı:", JSON.stringify(data));
+            throw new Error("API'den geçersiz yanıt alındı.");
+        }
+    } catch (error) {
+        console.error("Gemini Chat Hatası:", error);
+        res.json({
+            success: true,
+            reply: "Bağlantı kurarken küçük bir sorun oluştu. Ama unutma, en iyi tavsiye kendi iç sesindir. Bugün hedefin için küçük bir adım atmayı ihmal etme!"
+        });
+    }
+});
+
+// ------------------- AI WEEKLY REPORT ENDPOINT -------------------
+app.post("/api/ai-weekly-report", async (req, res) => {
+    const { username, goals, pzt, sal, car, per, cum, cmt, paz, total } = req.body;
+    
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        return res.json({ 
+            success: true, 
+            report: "Yapay zeka koçunuz şu an meşgul. Gelişiminizi sürdürmeye devam edin! 🌸" 
+        });
+    }
+
+    const systemPrompt = `Sen, GrowMe adında bir kişisel gelişim ve motivasyon uygulamasında profesyonel bir Gelişim Analistisin (AI Coach). 
+Kullanıcının haftalık gelişim verilerini ve hedeflerini analiz et.
+Kullanıcı adı: ${username}.
+Haftalık Performans (Hedefler için harcanan süreler):
+- Pazartesi: ${pzt} dakika
+- Salı: ${sal} dakika
+- Çarşamba: ${car} dakika
+- Perşembe: ${per} dakika
+- Cuma: ${cum} dakika
+- Cumartesi: ${cmt} dakika
+- Pazar: ${paz} dakika
+Toplam Süre: ${total} dakika.
+Kullanıcının Aktif Hedefleri: ${goals && goals.length ? goals.join(", ") : "Henüz hedef eklenmemiş"}
+
+Lütfen kullanıcıya haftalık performansını değerlendiren, hangi günlerde iyi gittiğini ve hangi günlerde desteklenmesi gerektiğini samimi, motive edici ve yapıcı bir dille özetleyen kısa bir haftalık gelişim raporu yaz (maksimum 4-5 cümle). Türkçe yanıt ver.`;
+
+    try {
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: systemPrompt }] }]
+                })
+            }
+        );
+
+        const data = await response.json();
+        if (data.candidates && data.candidates[0].content.parts[0].text) {
+            const report = data.candidates[0].content.parts[0].text.trim();
+            res.json({ success: true, report });
+        } else {
+            console.log("Gemini Weekly Report Hata Detayı:", JSON.stringify(data));
+            throw new Error("API'den geçersiz yanıt alındı.");
+        }
+    } catch (error) {
+        console.error("Gemini Weekly Report Hatası:", error);
+        res.json({
+            success: true,
+            report: "Haftalık rapor oluşturulurken küçük bir sorun yaşandı. Ancak harcadığın her dakika gelişimine katkı sağladı, tebrikler!"
+        });
+    }
+});
 
 // ------------------- SERVER -------------------
 const PORT = 3000;

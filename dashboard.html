@@ -245,6 +245,143 @@
             opacity: 1;
             pointer-events: all;
         }
+
+        /* --- AI CHAT WIDGET --- */
+        .chat-fab {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FFCDEB, #C6B9FF);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(198, 185, 255, 0.5);
+            z-index: 2500;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .chat-fab:hover {
+            transform: scale(1.15) rotate(15deg);
+        }
+
+        .chat-container {
+            position: fixed;
+            bottom: 95px;
+            right: 25px;
+            width: 340px;
+            height: 480px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            border-radius: 25px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 2500;
+            opacity: 0;
+            transform: translateY(30px) scale(0.9);
+            pointer-events: none;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .chat-container.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #FFCDEB, #C6B9FF);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h6 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-bubble {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            font-size: 13.5px;
+            line-height: 1.4;
+        }
+
+        .chat-bubble.user {
+            background: #C6B9FF;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-bubble.bot {
+            background: rgba(0, 0, 0, 0.05);
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-input-area {
+            padding: 10px 15px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: #C6B9FF;
+        }
+
+        .chat-send-btn {
+            background: #C6B9FF;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .chat-send-btn:hover {
+            background: #b5a4ff;
+        }
     </style>
 </head>
 
@@ -274,24 +411,28 @@
 
         </div>
 
-        <!-- MOTIVATION -->
-        <div class="card-box mb-4 text-center">
-            <h4>🌸 Günün Motivasyonu</h4>
-            <p>Küçük adımlar büyük değişimler yaratır.</p>
+        <!-- MOTIVATION / AI COACH -->
+        <div class="card-box mb-4 text-center" id="aiCoachCard"
+            style="border: 2px solid transparent; background-clip: padding-box, border-box; background-origin: padding-box, border-box; background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), linear-gradient(135deg, #FFCDEB, #C6B9FF); box-shadow: 0 15px 40px rgba(198, 185, 255, 0.35); transition: 0.5s;">
+            <h4 style="color: #5a4a6a; font-weight: 600;"><span id="aiCoachEmoji">🤖</span> AI Gelişim Koçu</h4>
+            <p id="aiCoachText" style="font-style: italic; color: #6a5a7a; font-size: 16px;">AI Koçunuz durumunuzu
+                analiz ediyor... ✨</p>
         </div>
 
         <div class="row g-4">
 
-            <!-- GOAL -->
+            <!-- GOAL PROGRESS TRACKER -->
             <div class="col-md-6">
-                <div class="card-box highlight">
-                    <h5>🎯 Bugünkü Hedef</h5>
-                    <p id="goalInfo">Henüz hedef belirlenmedi.</p>
-                    <input type="text" id="goalInput" placeholder="Yeni hedefinizi yazın">
-                    <button id="saveGoalBtn">Kaydet</button>
-
+                <div class="card-box highlight" style="min-height: 280px; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h5 class="mb-3">🎯 Günlük Hedef Takibi</h5>
+                        <div id="dashboardGoalsList" style="max-height: 180px; overflow-y: auto; padding-right: 5px;">
+                            <p style="font-size: 14px; opacity: 0.9;">Hedefleriniz yükleniyor...</p>
+                        </div>
+                    </div>
+                    
                     <!-- BADGES -->
-                    <div class="badge-area">
+                    <div class="badge-area" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">
                         <div class="badge-item" id="badge-goal">🏅</div>
                         <div class="badge-item" id="badge-mood">💖</div>
                         <div class="badge-item" id="badge-diary">📘</div>
@@ -332,8 +473,29 @@
         </div>
     </div>
 
+    <!-- AI CHAT WIDGET HTML -->
+    <div class="chat-fab" id="chatFab">💬</div>
+
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-header">
+            <h6>🌸 AI Koç Asistanı</h6>
+            <span style="cursor: pointer; font-size: 18px;" id="closeChatBtn">✕</span>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-bubble bot">
+                Merhaba! Ben senin Gelişim Koçunum. Bugün neyi geliştirmek istersin ya da aklına takılan ne var? Alışkanlık kazanma konusunda sana tavsiyeler verebilirim! 🌸
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chatInput" placeholder="AI Koçuna bir soru sor...">
+            <button class="chat-send-btn" id="chatSendBtn">➤</button>
+        </div>
+    </div>
+
     <script>
 
+        let currentMoodState = "";
+        const todayDate = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD formatı
 
         /* USER CHECK */
         const currentUser = localStorage.getItem("username");
@@ -364,31 +526,92 @@
                         document.getElementById("badge-diary").classList.add("active");
                     }
                 }
+                loadDashboardGoals(); // Hedefleri ve ilerlemeleri yükle
+                updateAICoach(); // Sayfa ilk açıldığında yapay zekayı tetikledik!
             });
 
-        /* GOAL SYSTEM */
-        const savedGoal = localStorage.getItem("dailyGoal");
-        if (savedGoal) {
-            document.getElementById("goalInfo").innerText = savedGoal;
+        /* GOAL PROGRESS SYSTEM */
+        function loadDashboardGoals() {
+            const list = document.getElementById("dashboardGoalsList");
+            const progressKey = `goalsProgress_${currentUser}_${todayDate}`;
+            let progressData = JSON.parse(localStorage.getItem(progressKey)) || {};
+
+            fetch("/goals?username=" + currentUser)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.goals.length > 0) {
+                        list.innerHTML = "";
+                        let completedAll = true;
+
+                        data.goals.forEach(g => {
+                            const currentVal = progressData[g.id] || 0;
+                            const isDone = currentVal >= g.dailyMin;
+                            if (!isDone) completedAll = false;
+
+                            const item = document.createElement("div");
+                            item.style.background = "rgba(255,255,255,0.15)";
+                            item.style.padding = "10px";
+                            item.style.borderRadius = "12px";
+                            item.style.marginBottom = "8px";
+                            item.style.display = "flex";
+                            item.style.justifyContent = "space-between";
+                            item.style.alignItems = "center";
+                            item.style.fontSize = "14px";
+
+                            item.innerHTML = `
+                                <div style="flex: 1; text-align: left;">
+                                    <strong style="color: white;">${g.name}</strong><br>
+                                    <span style="font-size: 12px; opacity: 0.9; color: white;">
+                                        Gelişim: ${currentVal} / ${g.dailyMin} ${g.type} ${isDone ? "✅" : ""}
+                                    </span>
+                                </div>
+                                <div style="display: flex; gap: 5px; align-items: center;">
+                                    <input type="number" id="progressInput_${g.id}" placeholder="+" style="width: 50px; text-align: center; border-radius: 8px; border: none; padding: 4px; font-size: 12px;">
+                                    <button onclick="addProgress(${g.id})" style="border: none; background: white; color: #964bb9; font-weight: bold; border-radius: 8px; padding: 4px 8px; font-size: 12px; cursor: pointer;">✓</button>
+                                </div>
+                            `;
+                            list.appendChild(item);
+                        });
+
+                        if (completedAll && data.goals.length > 0) {
+                            document.getElementById("badge-goal").classList.add("active");
+                        } else {
+                            document.getElementById("badge-goal").classList.remove("active");
+                        }
+                    } else {
+                        list.innerHTML = `
+                            <p style="font-size: 14px; opacity: 0.9;">Henüz hedef eklemediniz.</p>
+                            <a href="hedefler.html" style="color: white; text-decoration: underline; font-size: 14px; font-weight: 500;">Yeni Hedef Ekle →</a>
+                        `;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    list.innerHTML = `<p style="font-size: 14px;">Hedefler yüklenirken hata oluştu.</p>`;
+                });
         }
 
-        document.getElementById("saveGoalBtn").addEventListener("click", function () {
-            let newGoal = document.getElementById("goalInput").value.trim();
+        function addProgress(goalId) {
+            const inputEl = document.getElementById(`progressInput_${goalId}`);
+            const addVal = Number(inputEl.value) || 0;
+            if (addVal <= 0) return;
 
-            if (newGoal === "") {
-                alert("Hedef boş olamaz!");
-            } else {
-                localStorage.setItem("dailyGoal", newGoal);
-                document.getElementById("goalInfo").innerText = newGoal;
-                document.getElementById("goalInput").value = "";
-                document.getElementById("badge-goal").classList.add("active");
-                alert("Yeni hedef kaydedildi! 🏅");
-            }
-        });
+            const progressKey = `goalsProgress_${currentUser}_${todayDate}`;
+            let progressData = JSON.parse(localStorage.getItem(progressKey)) || {};
+            
+            const currentVal = progressData[goalId] || 0;
+            progressData[goalId] = currentVal + addVal;
+            localStorage.setItem(progressKey, JSON.stringify(progressData));
+
+            inputEl.value = "";
+            loadDashboardGoals();
+            updateAICoach(); // Yapay zekaya haber ver!
+        }
 
         /* MOOD */
         function setMood(type) {
             const moodResult = document.getElementById("moodResult");
+            currentMoodState = type; // Ruh halini hafızaya kaydettik
 
             if (type === "happy") {
                 moodResult.innerText = "Harika! Enerjin çok güzel 😍";
@@ -404,6 +627,7 @@
             }
 
             document.getElementById("badge-mood").classList.add("active");
+            updateAICoach(); // Yapay zekayı tetikledik!
         }
 
         const menuBtn = document.getElementById("menuBtn");
@@ -420,8 +644,129 @@
             overlay.classList.remove("active");
         });
 
-    </script>
+        function updateAICoach() {
+            const aiCoachText = document.getElementById("aiCoachText");
+            const aiCoachEmoji = document.getElementById("aiCoachEmoji");
 
+            aiCoachText.innerText = "Yapay zeka koçunuz durumunuzu analiz ediyor... ✨";
+            aiCoachEmoji.innerText = "🧠";
+
+            // Hedefleri ve gelişim durumlarını toplayalım
+            const progressKey = `goalsProgress_${currentUser}_${todayDate}`;
+            let progressData = JSON.parse(localStorage.getItem(progressKey)) || {};
+
+            fetch("/goals?username=" + currentUser)
+                .then(res => res.json())
+                .then(data => {
+                    let goalsList = [];
+                    if (data.success && data.goals.length > 0) {
+                        goalsList = data.goals.map(g => {
+                            const progress = progressData[g.id] || 0;
+                            return `${g.name}: ${progress}/${g.dailyMin} ${g.type}`;
+                        });
+                    }
+
+                    const streakText = document.getElementById("streakText").innerText;
+                    const streakCount = parseInt(streakText) || 0;
+
+                    return fetch("/api/ai-coach", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            username: currentUser,
+                            mood: currentMoodState,
+                            goals: goalsList,
+                            streak: streakCount
+                        })
+                    });
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        aiCoachText.innerText = `"${data.advice}"`;
+                        aiCoachEmoji.innerText = "🌸";
+                    } else {
+                        aiCoachText.innerText = "AI Koç şu an dinleniyor. Gelişmeye devam et! ✨";
+                        aiCoachEmoji.innerText = "🧘‍♀️";
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    aiCoachText.innerText = "Bağlantı hatası. Bugün hedefin için küçük bir adım at, bu yeterli! ✨";
+                    aiCoachEmoji.innerText = "🧘‍♀️";
+                });
+        }
+
+        // --- AI CHAT WIDGET LOGIC ---
+        const chatFab = document.getElementById("chatFab");
+        const chatContainer = document.getElementById("chatContainer");
+        const closeChatBtn = document.getElementById("closeChatBtn");
+        const chatInput = document.getElementById("chatInput");
+        const chatSendBtn = document.getElementById("chatSendBtn");
+        const chatMessages = document.getElementById("chatMessages");
+
+        let chatHistory = [];
+
+        chatFab.addEventListener("click", () => {
+            chatContainer.classList.add("active");
+            chatFab.style.transform = "scale(0)";
+        });
+
+        closeChatBtn.addEventListener("click", () => {
+            chatContainer.classList.remove("active");
+            chatFab.style.transform = "scale(1)";
+        });
+
+        chatSendBtn.addEventListener("click", sendChatMessage);
+        chatInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") sendChatMessage();
+        });
+
+        function sendChatMessage() {
+            const messageText = chatInput.value.trim();
+            if (messageText === "") return;
+
+            appendMessage("user", messageText);
+            chatInput.value = "";
+
+            const loadingBubble = appendMessage("bot", "Düşünüyorum... 💭");
+
+            fetch("/api/ai-chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: currentUser,
+                    message: messageText,
+                    history: chatHistory
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                loadingBubble.remove();
+                if (data.success) {
+                    appendMessage("bot", data.reply);
+                    chatHistory.push({ sender: "user", text: messageText });
+                    chatHistory.push({ sender: "bot", text: data.reply });
+                } else {
+                    appendMessage("bot", "Cevap alırken bir hata oluştu. Lütfen tekrar deneyin.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                loadingBubble.remove();
+                appendMessage("bot", "Bağlantı hatası. Lütfen daha sonra tekrar deneyin.");
+            });
+        }
+
+        function appendMessage(sender, text) {
+            const bubble = document.createElement("div");
+            bubble.className = `chat-bubble ${sender}`;
+            bubble.innerText = text;
+            chatMessages.appendChild(bubble);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return bubble;
+        }
+    </script>
 </body>
 
 </html>

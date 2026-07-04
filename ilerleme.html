@@ -313,58 +313,70 @@
     </div>
 
     <script>
-
-        const weeklyData = JSON.parse(localStorage.getItem("weeklyData")) || {
-            pzt: 0, sal: 0, car: 0, per: 0, cum: 0, cmt: 0, paz: 0
-        };
-
-        const days = ["pzt", "sal", "car", "per", "cum", "cmt", "paz"];
-        let total = 0;
-        days.forEach(d => total += weeklyData[d]);
-
-        // BUGÜN
-        let today = 0;
-        for (let i = days.length - 1; i >= 0; i--) {
-            if (weeklyData[days[i]] > 0) {
-                today = weeklyData[days[i]];
-                break;
-            }
+        const currentUser = localStorage.getItem("username");
+        if (!currentUser) {
+            window.location.replace("/");
         }
 
-        document.getElementById("todayPercent").innerText = today + "%";
-        document.getElementById("todayBar").style.width = today + "%";
-        document.getElementById("todayText").innerText =
-            today === 0 ? "Bugün henüz giriş yok" : "Bugün ilerleme kaydettin 💜";
+        fetch("/weekly?username=" + currentUser)
+            .then(res => res.json())
+            .then(res => {
+                const weeklyData = (res.success && res.data) ? res.data : {
+                    pzt: 0, sal: 0, car: 0, per: 0, cum: 0, cmt: 0, paz: 0
+                };
 
-        // HAFTA
-        let weekPercent = Math.round((total / 700) * 100);
-        document.getElementById("weekPercent").innerText = weekPercent + "%";
-        document.getElementById("weekBar").style.width = weekPercent + "%";
-        document.getElementById("weekText").innerText =
-            weekPercent === 0 ? "Bu hafta henüz veri yok" : "Haftalık ilerlemen oluştu ✨";
+                const days = ["pzt", "sal", "car", "per", "cum", "cmt", "paz"];
+                let total = 0;
+                days.forEach(d => total += (Number(weeklyData[d]) || 0));
 
-        // TIMELINE
-        const timeline = document.getElementById("timeline");
-        timeline.innerHTML = "";
+                // BUGÜN (Haftanın son girilen aktif değeri)
+                let today = 0;
+                for (let i = days.length - 1; i >= 0; i--) {
+                    const val = Number(weeklyData[days[i]]) || 0;
+                    if (val > 0) {
+                        today = val;
+                        break;
+                    }
+                }
 
-        days.forEach(d => {
-            if (weeklyData[d] > 0) {
-                const div = document.createElement("div");
-                div.className = "timeline-item";
-                div.innerText = d.toUpperCase() + " – %" + weeklyData[d];
-                timeline.appendChild(div);
-            }
-        });
+                document.getElementById("todayPercent").innerText = today + "%";
+                document.getElementById("todayBar").style.width = Math.min(today, 100) + "%";
+                document.getElementById("todayText").innerText =
+                    today === 0 ? "Bugün henüz giriş yok" : `Bugün ${today} dakika ilerleme kaydettin 💜`;
 
-        if (!timeline.children.length) {
-            timeline.innerHTML = `<div class="timeline-item">Henüz kayıt yok</div>`;
-        }
+                // HAFTA
+                let weekPercent = Math.round((total / 700) * 100);
+                document.getElementById("weekPercent").innerText = weekPercent + "%";
+                document.getElementById("weekBar").style.width = Math.min(weekPercent, 100) + "%";
+                document.getElementById("weekText").innerText =
+                    weekPercent === 0 ? "Bu hafta henüz veri yok" : `Haftalık toplam: ${total} dakika ✨`;
 
-        // ROZETLER
-        b1.classList.toggle("active", weekPercent >= 30);
-        b2.classList.toggle("active", weekPercent >= 60);
-        b3.classList.toggle("active", weekPercent >= 90);
+                // TIMELINE
+                const timeline = document.getElementById("timeline");
+                timeline.innerHTML = "";
 
+                days.forEach(d => {
+                    const val = Number(weeklyData[d]) || 0;
+                    if (val > 0) {
+                        const div = document.createElement("div");
+                        div.className = "timeline-item";
+                        div.innerText = d.toUpperCase() + " – " + val + " Dakika";
+                        timeline.appendChild(div);
+                    }
+                });
+
+                if (!timeline.children.length) {
+                    timeline.innerHTML = `<div class="timeline-item">Henüz kayıt yok</div>`;
+                }
+
+                // ROZETLER
+                b1.classList.toggle("active", weekPercent >= 30);
+                b2.classList.toggle("active", weekPercent >= 60);
+                b3.classList.toggle("active", weekPercent >= 90);
+            })
+            .catch(err => {
+                console.error("İlerleme verileri yüklenirken hata:", err);
+            });
     </script>
 </body>
 
